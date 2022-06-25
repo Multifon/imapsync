@@ -1,0 +1,31 @@
+#!/bin/bash
+# este script lee user1, pwd1, user2, pwd2 desde accounts.motociclist
+# y borra correos más viejos de 60 días en ATM.
+# hacked from https://gist.github.com/onlime/4bc4514e835d7c4d685f
+
+#####Variables globales#####
+ACCOUNTS=accounts.list
+EXTRALOG=sync.log
+TSFORMAT="%Y-%m-%d %H:%M:%S"
+SRCHOST=mail.atmseguros.com.ar
+DSTHOST=localhost
+#############################
+#cd a donde quiera que este el script
+cd "$(dirname "$0")"
+pwd
+
+
+grep -ve '^#.*' $ACCOUNTS | while read SRCUSER SRCPW DSTUSER DSTPW
+do
+    MESSAGE="[`date +"$TSFORMAT"`] deleting at $SRCUSER"
+    echo $MESSAGE
+    echo $MESSAGE >> $EXTRALOG
+    imapsync --nolog --nofoldersizes --nofoldersizesatend --no-modulesversion \
+    --keepalive1 --keepalive2 \
+    --nossl1 --nossl2 \
+    --notls1 --notls2 \
+    --tmpdir /var/tmp --noreleasecheck \
+    --host1 $DSTHOST --user1 $DSTUSER --password1 $DSTPW \
+    --host2 $DSTHOST --user2 $DSTUSER --password2 $DSTPW \
+    --delete1 --noexpungeaftereach --minage 730
+done
